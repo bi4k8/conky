@@ -32,7 +32,6 @@
 #include "logging.h"
 #include "specials.h"
 #include "text_object.h"
-#include "x11.h"
 
 /**
  * Length of a character in bytes.
@@ -323,9 +322,7 @@ void print_scroll(struct text_object *obj, char *p, unsigned int p_max_size) {
 
 #ifdef BUILD_GUI
   // reset color when scroll is finished
-  if (out_to_x.get(*state)) {
-    new_special(p + strlen(p), FG)->arg = sd->resetcolor;
-  }
+  new_special(p + strlen(p), FG)->arg = sd->resetcolor;
 #endif
 }
 

@@ -54,6 +54,9 @@
 #include <sys/inotify.h>
 #pragma clang diagnostic pop
 #endif /* HAVE_SYS_INOTIFY_H */
+#ifdef BUILD_WAYLAND
+#include "wl.h"
+#endif /* BUILD_WAYLAND */
 #ifdef BUILD_X11
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wvariadic-macros"
@@ -90,6 +93,7 @@
 #include "exec.h"
 #ifdef BUILD_GUI
 #include "fonts.h"
+#include "gui.h"
 #endif
 #include "fs.h"
 #ifdef BUILD_ICONV
@@ -754,7 +758,7 @@ static int get_string_width_special(char *s, int special_index) {
   if (display_output() == nullptr || !display_output()->graphical()) {
     return strlen(s);
   }
-  if (!out_to_x.get(*state)) { return strlen(s); }
+  if (!out_to_gui(*state)) { return strlen(s); }
 
   p = strndup(s, text_buffer_size.get(*state));
   final = p;
@@ -828,7 +832,7 @@ int last_font_height;
 void update_text_area() {
   int x = 0, y = 0;
 
-  if (!out_to_x.get(*state)) { return; }
+  if (!out_to_gui(*state)) { return; }
   /* update text size if it isn't fixed */
 #ifdef OWN_WINDOW
   if (fixed_size == 0)
@@ -939,7 +943,7 @@ static int text_size_updater(char *s, int special_index) {
 
   for (int i = 0; i < special_index; i++) { current = current->next; }
 
-  if (!out_to_x.get(*state)) { return 0; }
+  if (!out_to_gui(*state)) { return 0; }
   if (display_output() == nullptr || !display_output()->graphical()) {
     return 0;
   }
@@ -1150,7 +1154,7 @@ int draw_each_line_inner(char *s, int special_index, int last_special_applied) {
       switch (current->type) {
 #ifdef BUILD_GUI
         case HORIZONTAL_LINE:
-          if (out_to_x.get(*state)) {
+          if (out_to_gui(*state)) {
             int h = current->height;
             int mid = font_ascent() / 2;
 
@@ -1166,7 +1170,7 @@ int draw_each_line_inner(char *s, int special_index, int last_special_applied) {
           break;
 
         case STIPPLED_HR:
-          if (out_to_x.get(*state)) {
+          if (out_to_gui(*state)) {
             int h = current->height;
             char tmp_s = current->arg;
             int mid = font_ascent() / 2;
@@ -1184,7 +1188,7 @@ int draw_each_line_inner(char *s, int special_index, int last_special_applied) {
           break;
 
         case BAR:
-          if (out_to_x.get(*state)) {
+          if (out_to_gui(*state)) {
             int h, by;
             double bar_usage, scale;
             if (cur_x - text_start_x > mw && mw > 0) { break; }
@@ -1212,7 +1216,7 @@ int draw_each_line_inner(char *s, int special_index, int last_special_applied) {
           break;
 
         case GAUGE: /* new GAUGE  */
-          if (out_to_x.get(*state)) {
+          if (out_to_gui(*state)) {
             int h, by = 0;
             unsigned long last_colour = current_color;
 #ifdef BUILD_MATH
@@ -1262,7 +1266,7 @@ int draw_each_line_inner(char *s, int special_index, int last_special_applied) {
           break;
 
         case GRAPH:
-          if (out_to_x.get(*state)) {
+          if (out_to_gui(*state)) {
             int h, by, i = 0, j = 0;
             int colour_idx = 0;
             unsigned long last_colour = current_color;
@@ -1401,7 +1405,7 @@ int draw_each_line_inner(char *s, int special_index, int last_special_applied) {
           break;
 
         case FONT:
-          if (out_to_x.get(*state)) {
+          if (out_to_gui(*state)) {
             int old = font_ascent();
 
             cur_y -= font_ascent();
@@ -1916,11 +1920,19 @@ static void set_default_configurations() {
   info.xmms2.status = nullptr;
   info.xmms2.playlist = nullptr;
 #endif /* BUILD_XMMS2 */
+
+/* Enable a single output by default based on what was enabled at build-time */
+#ifdef BUILD_WAYLAND
   state->pushboolean(true);
-#ifdef BUILD_GUI
+  out_to_wayland.lua_set(*state);
+#else
+#ifdef BUILD_X11
+  state->pushboolean(true);
   out_to_x.lua_set(*state);
 #else
+  state->pushboolean(true);
   out_to_stdout.lua_set(*state);
+#endif
 #endif
 
   info.users.number = 1;
@@ -2196,7 +2208,7 @@ void initialisation(int argc, char **argv) {
   conky::set_config_settings(*state);
 
 #ifdef BUILD_GUI
-  if (out_to_x.get(*state)) { current_text_color = default_color.get(*state); }
+  if (out_to_gui(*state)) { current_text_color = default_color.get(*state); }
 #endif
 
   /* generate text and get initial size */
