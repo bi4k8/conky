@@ -509,8 +509,6 @@ bool display_output_wayland::main_loop_wait(double t) {
     selected_font = 0;
     update_text_area();
 
-//#ifdef OWN_WINDOW
-//    if (own_window.get(*state)) {
       int changed = 0;
       int border_total = get_border_total();
 
@@ -588,65 +586,13 @@ bool display_output_wayland::main_loop_wait(double t) {
           zwlr_layer_surface_v1_set_margin(global_window->layer_surface, gap_y.get(*state), gap_x.get(*state), gap_y.get(*state), gap_x.get(*state));
         }
       }
-//    }
-//#endif
 
     clear_text(1);
-
-	puts("drawing stuff 1");
     draw_stuff();
   }
 
-#ifdef X_EVENTS
-  /* handle X events */
-  while (XPending(display) != 0) {
-    XEvent ev;
-
-    XNextEvent(display, &ev);
-    switch (ev.type) {
-#ifdef OWN_WINDOW
-      case ConfigureNotify:
-        if (own_window.get(*state)) {
-          /* if window size isn't what expected, set fixed size */
-          if (ev.xconfigure.width != window.width ||
-              ev.xconfigure.height != window.height) {
-            if (window.width != 0 && window.height != 0) { fixed_size = 1; }
-
-            /* clear old stuff before screwing up
-             * size and pos */
-            clear_text(1);
-
-            {
-              XWindowAttributes attrs;
-              if (XGetWindowAttributes(display, window.window, &attrs) != 0) {
-                window.width = attrs.width;
-                window.height = attrs.height;
-              }
-            }
-
-            int border_total = get_border_total();
-
-            text_width = window.width - 2 * border_total;
-            text_height = window.height - 2 * border_total;
-            int mw = this->dpi_scale(maximum_width.get(*state));
-            if (text_width > mw && mw > 0) { text_width = mw; }
-          }
-
-          /* if position isn't what expected, set fixed pos
-           * total_updates avoids setting fixed_pos when window
-           * is set to weird locations when started */
-          /* // this is broken
-          if (total_updates >= 2 && !fixed_pos
-              && (window.x != ev.xconfigure.x
-              || window.y != ev.xconfigure.y)
-              && (ev.xconfigure.x != 0
-              || ev.xconfigure.y != 0)) {
-            fixed_pos = 1;
-          } */
-        }
-        break;
-
 #ifdef INPUT
+#ifdef X_EVENT
       case ButtonPress:
         if (own_window.get(*state)) {
           /* if an ordinary window with decorations */
@@ -682,20 +628,8 @@ bool display_output_wayland::main_loop_wait(double t) {
           XSendEvent(display, ev.xbutton.window, False, ButtonReleaseMask, &ev);
         }
         break;
-#endif
-
-#endif
-
-      default:
-        break;
-    }
-  }
-
-	puts("drawing stuff 2");
-    draw_stuff();
-
-#endif /* X_EVENTS */
-
+#endif /*X_EVENT*/
+#endif /*INPUT*/
 
   // handled
   return true;
