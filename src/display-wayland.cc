@@ -479,26 +479,26 @@ bool display_output_wayland::main_loop_wait(double t) {
 	int ms = t * 1000;
 	printf("epoll(%lf, %d)\n", t, ms);
 
-	ep[0].events =
-		EPOLLIN | EPOLLOUT | EPOLLERR | EPOLLHUP;
-	ep[0].data.ptr = nullptr;
-
-	if (!added && epoll_ctl(epoll_fd, EPOLL_CTL_ADD, wl_display_get_fd(global_display), &ep[0]) == -1) {
-		perror("epoll_ctl: add");
-		return false;
+	/* add fd to epoll set the first time around */
+	if (!added) {
+		ep[0].events = EPOLLIN | EPOLLERR | EPOLLHUP | EPOLLET;
+		ep[0].data.ptr = nullptr;
+		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, wl_display_get_fd(global_display), &ep[0]) == -1) {
+			perror("epoll_ctl: add");
+			return false;
+		}
+		added = true;
 	}
-	added = true;
 
     /* wait for Wayland event or timeout */
-	int ep_count = epoll_wait(epoll_fd,
-			   ep, ARRAY_LENGTH(ep), ms);
+	int ep_count = epoll_wait(epoll_fd, ep, ARRAY_LENGTH(ep), ms);
 
-	/*if (ep[0].events & EPOLLIN) {
-		wl_display_dispatch_pending(global_display);
-	}*/
-	wl_display_read_events(global_display); wl_display_dispatch_pending(global_display);
+	wl_display_dispatch_pending(global_display);
 
-	update_text();
+	wl_display_flush(global_display);
+
+    /* timeout */
+	if (ep_count == 0) { update_text(); }
 
   if (need_to_update != 0) {
 #ifdef OWN_WINDOW
