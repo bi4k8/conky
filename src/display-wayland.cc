@@ -226,25 +226,9 @@ xftalpha_setting xftalpha;
 
 static void wayland_create_window();
 
-/*struct _x11_stuff_s {
-  Region region;
-#ifdef BUILD_XDAMAGE
-  Damage damage;
-  XserverRegion region2, part;
-  int event_base, error_base;
-#endif
-} x11_stuff;*/
-
 static void wayland_create_window() {
   setup_fonts();
   load_fonts(utf8_mode.get(*state));
-  //TODO: dpi
-#if 0
-  if (use_xft.get(*state)) {
-    auto dpi = XGetDefault(display, "Xft", "dpi");
-    if (dpi) { xft_dpi = atoi(dpi); }
-  }
-#endif
   update_text_area(); /* to position text/window on screen */
 
 #ifdef OWN_WINDOW
@@ -257,20 +241,6 @@ static void wayland_create_window() {
     //set_transparent_background(window.window);
   }
 #endif
-
-  //create_gc();
-
-  //draw_stuff();
-
-  //x11_stuff.region = XCreateRegion();
-/*
-#ifdef BUILD_XDAMAGE
-  x11_stuff.damage =
-      XDamageCreate(display, window.window, XDamageReportNonEmpty);
-  x11_stuff.region2 = XFixesCreateRegionFromWindow(display, window.window, 0);
-  x11_stuff.part = XFixesCreateRegionFromWindow(display, window.window, 0);
-#endif
-*/
 
   selected_font = 0;
   update_text_area(); /* to get initial size of the window */
@@ -433,13 +403,6 @@ static void
 xdg_toplevel_configure(void *data, struct xdg_toplevel *xdg_toplevel,
                        int32_t width, int32_t height, struct wl_array *states)
 {
-    int border_total = get_border_total();
-
-    text_width = width - 2 * border_total;
-    text_height = height - 2 * border_total;
-    global_window->rectangle.width = width;
-    global_window->rectangle.height = height;
-    //int mw = this->dpi_scale(maximum_width.get(*state));
 }
 
 static void
@@ -789,11 +752,11 @@ int display_output_wayland::calc_text_width(const char *s) {
 
 static void adjust_coords(int& x, int& y) {
   struct window *window = global_window;
-  x += window->rectangle.width / 2;
-  y += window->rectangle.height;
-  int border = get_border_total();
+  x -= text_start_x;
+  y -= text_start_y;
+  /*int border = get_border_total();
   x += border;
-  y += border;
+  y += border;*/
 }
 
 void display_output_wayland::draw_string_at(int x, int y, const char *s, int w) {
