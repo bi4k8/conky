@@ -590,6 +590,7 @@ bool display_output_wayland::main_loop_wait(double t) {
     clear_text(1);
     draw_stuff();
   }
+  wl_display_flush(global_display);
 
 #ifdef INPUT
 #ifdef X_EVENT
