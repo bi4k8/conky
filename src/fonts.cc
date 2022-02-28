@@ -41,7 +41,7 @@ void font_setting::lua_setter(lua::state &l, bool init) {
 
   Base::lua_setter(l, init);
 
-  if (init && out_to_gui(*state)) {
+  if (init) {
     if (fonts.empty()) { fonts.resize(1); }
     fonts[0].name = do_convert(l, -1).first;
   }

@@ -198,7 +198,6 @@ struct pango_font {
 
 static std::vector<pango_font> pango_fonts; /* indexed by selected_font */
 
-#ifdef BUILD_XFT
 namespace {
 class xftalpha_setting : public conky::simple_config_setting<float> {
   using Base = conky::simple_config_setting<float>;
@@ -209,7 +208,7 @@ class xftalpha_setting : public conky::simple_config_setting<float> {
 
     Base::lua_setter(l, init);
 
-    if (init && out_to_wayland.get(*state)) {
+    if (init) {
       pango_fonts.resize(std::max(1, static_cast<int>(fonts.size())));
       pango_fonts[0].desc = nullptr;
       pango_fonts[0].font_alpha = do_convert(l, -1).first * 0xffff;
@@ -224,7 +223,6 @@ class xftalpha_setting : public conky::simple_config_setting<float> {
 
 xftalpha_setting xftalpha;
 }  // namespace
-#endif /* BUILD_XFT */
 
 static void wayland_create_window();
 
