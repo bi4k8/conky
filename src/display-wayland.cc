@@ -493,6 +493,8 @@ bool display_output_wayland::main_loop_wait(double t) {
     /* wait for Wayland event or timeout */
 	int ep_count = epoll_wait(epoll_fd, ep, ARRAY_LENGTH(ep), ms);
 
+	wl_display_read_events(global_display);
+
 	wl_display_dispatch_pending(global_display);
 
 	wl_display_flush(global_display);
