@@ -30,7 +30,10 @@
 #include "logging.h"
 #ifdef BUILD_X11
 #include "x11.h"
-#endif
+#endif /*BUILD_X11*/
+#ifdef BUILD_WAYLAND
+#include "x11-color.h"
+#endif /*BUILD_WAYLAND*/
 
 /* precalculated: 31/255, and 63/255 */
 #define CONST_8_TO_5_BITS 0.12156862745098
@@ -183,11 +186,15 @@ long get_x11_color(const char *name) {
   }
 
   return static_cast<long>(color.pixel);
-#else /*BUILD_X11*/
+#elif BUILD_WAYLAND
+    unsigned short r, g, b;
+    size_t len = strlen(name);
+    if (OsLookupColor(-1, name, len, &r, &g, &b)) {
+      return 0x000000ff | ((r & 0xff) << 24) | ((g & 0xff) << 16) | ((b & 0xff) << 8);
+    }
     if (name[0] == '#') {
       name++;
     }
-    size_t len = strlen(name);
     if (len == 6 || len == 8)
     {
         unsigned char argb[4] = {0xff, 0, 0, 0};
@@ -208,7 +215,7 @@ long get_x11_color(const char *name) {
     err:
     NORM_ERR("can't parse X color '%s'", name);
     return 0xFF00FF;
-#endif /*BUILD_X11*/
+#endif
 }
 
 long get_x11_color(const std::string &colour) {
