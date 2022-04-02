@@ -547,7 +547,6 @@ bool display_output_wayland::main_loop_wait(double t) {
            text_height + 2 * border_total != height)) {
         width = text_width + 2 * border_total;
         height = text_height + 2 * border_total;
-        printf("resizing\n");
         window_resize(global_window, width, height); /* resize window */
 
         changed++;
