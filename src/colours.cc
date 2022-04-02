@@ -28,6 +28,7 @@
  */
 #include "conky.h"
 #include "logging.h"
+#include "gui.h"
 #ifdef BUILD_X11
 #include "x11.h"
 #endif /*BUILD_X11*/
@@ -194,6 +195,7 @@ long get_x11_color(const char *name) {
     }
     if (name[0] == '#') {
       name++;
+      len--;
     }
     if (len == 6 || len == 8)
     {
@@ -213,7 +215,7 @@ long get_x11_color(const char *name) {
         return out;
     }
     err:
-    NORM_ERR("can't parse X color '%s'", name);
+    NORM_ERR("can't parse X color '%s' (%d)", name, len);
     return 0xFF00FF;
 #endif
 }
