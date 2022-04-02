@@ -748,8 +748,8 @@ void display_output_wayland::draw_line(int x1, int y1, int x2, int y2) {
   adjust_coords(x1, y1);
   adjust_coords(x2, y2);
   cairo_save(window->cr);
-  cairo_move_to(window->cr, x1 + 0.5, y1 + 0.5);
-  cairo_line_to(window->cr, x2 + 0.5, y2 + 0.5);
+  cairo_move_to(window->cr, x1 - 0.5, y1 - 0.5);
+  cairo_line_to(window->cr, x2 - 0.5, y2 - 0.5);
   cairo_stroke(window->cr);
   cairo_restore(window->cr);
 }
@@ -757,12 +757,17 @@ void display_output_wayland::draw_line(int x1, int y1, int x2, int y2) {
 static void do_rect(int x, int y, int w, int h, bool fill) {
   struct window *window = global_window;
   adjust_coords(x, y);
+
   cairo_save(window->cr);
-  cairo_rectangle(window->cr, x + 0.5, y + 0.5 + h * 3, w, h);
   if (fill) {
+    /* Note that cairo interprets fill and stroke coordinates differently,
+    so here we don't add 0.5 to move between centers and corners of pixels. */
+    cairo_rectangle(window->cr, x, y, w - 1, h - 1);
     cairo_fill(window->cr);
+  } else {
+    cairo_rectangle(window->cr, x - 0.5, y - 0.5, w, h);
+    cairo_stroke(window->cr);
   }
-  cairo_stroke(window->cr);
   cairo_restore(window->cr);
 }
 
@@ -778,13 +783,13 @@ void display_output_wayland::draw_arc(int x, int y, int w, int h, int a1, int a2
   struct window *window = global_window;
   adjust_coords(x, y);
   cairo_save(window->cr);
-  //cairo_move_to(cr, x, y);
-  // cairo_new_sub_path() ?
-  cairo_translate(window->cr, x + w / 2., y + h / 2.);
+  cairo_translate(window->cr, x + w / 2. - 0.5, y + h / 2. - 0.5);
   cairo_scale(window->cr, w / 2., h / 2.);
-  cairo_arc(window->cr, 0., 0., 1., a2, a2);
+  cairo_set_line_width(window->cr, 2. / (w + h));
+  double mult = M_PI / (180. * 64.);
+  cairo_arc_negative(window->cr, 0., 0., 1., a1 * mult, a2 * mult);
+  cairo_stroke(window->cr);
   cairo_restore(window->cr);
-  //cairo_stroke();?
 }
 
 void display_output_wayland::move_win(int x, int y) {
