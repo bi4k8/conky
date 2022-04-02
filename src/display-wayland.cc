@@ -371,10 +371,7 @@ registry_handle_global(void *data, struct wl_registry *registry, uint32_t name,
 	if(strcmp(interface, "wl_compositor") == 0) {
 		wl_globals.compositor = static_cast<wl_compositor*>(wl_registry_bind(registry, name,
 					  &wl_compositor_interface, 3));
-	} /*else if(strcmp(interface, "wl_shell") == 0) {
-		registry.shell = wl_registry_bind(registry, name,
-					    &wl_shell_interface, 1);
-	}*/ else if(strcmp(interface, "wl_shm") == 0) {
+	} else if(strcmp(interface, "wl_shm") == 0) {
 		wl_globals.shm = static_cast<wl_shm*>(wl_registry_bind(registry, name, &wl_shm_interface, 1));
 	} else if(strcmp(interface, "wl_seat") == 0) {
 		wl_globals.seat = static_cast<wl_seat*>(wl_registry_bind(registry, name,
