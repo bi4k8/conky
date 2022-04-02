@@ -1056,7 +1056,7 @@ window_allocate_buffer(struct window *window) {
 	pool = shm_pool_create(window->shm,
 			       data_length_for_shm_surface(&window->rectangle, window->scale));
 	if (!pool) {
-		printf("could not allocate shm pool\n");
+		fprintf(stderr, "could not allocate shm pool\n");
 		return;
 	}
 
