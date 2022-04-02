@@ -726,8 +726,8 @@ void display_output_wayland::draw_line(int x1, int y1, int x2, int y2) {
   adjust_coords(x1, y1);
   adjust_coords(x2, y2);
   cairo_save(window->cr);
-  cairo_move_to(window->cr, x1, y1);
-  cairo_line_to(window->cr, x2, y2);
+  cairo_move_to(window->cr, x1 + 0.5, y1 + 0.5);
+  cairo_line_to(window->cr, x2 + 0.5, y2 + 0.5);
   cairo_stroke(window->cr);
   cairo_restore(window->cr);
 }
@@ -736,7 +736,7 @@ static void do_rect(int x, int y, int w, int h, bool fill) {
   struct window *window = global_window;
   adjust_coords(x, y);
   cairo_save(window->cr);
-  cairo_rectangle(window->cr, x, y + h * 3, w, h);
+  cairo_rectangle(window->cr, x + 0.5, y + 0.5 + h * 3, w, h);
   if (fill) {
     cairo_fill(window->cr);
   }
