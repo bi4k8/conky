@@ -429,10 +429,15 @@ void window_layer_surface_set_size(struct window *window) {
 bool display_output_wayland::initialize() {
 	epoll_fd = epoll_create1(0);
 	if(epoll_fd < 0) {
-		perror("epoll_create");
+		perror("conky: epoll_create");
 		return false;
 	}
 	global_display = wl_display_connect(NULL);
+	if (!global_display) {
+		perror("conky: wl_display_connect");
+		return false;
+	}
+
 	wl_globals.registry = wl_display_get_registry(global_display);
 	wl_registry_add_listener(wl_globals.registry, &registry_listener, NULL);
 
@@ -466,7 +471,7 @@ bool display_output_wayland::shutdown() { return false; }
 
 #define ARRAY_LENGTH(x) (sizeof(x)/sizeof(x[0]))
 
-bool added = false;
+static bool added = false;
 
 bool display_output_wayland::main_loop_wait(double t) {
 	while (wl_display_prepare_read(global_display) != 0)
@@ -477,14 +482,13 @@ bool display_output_wayland::main_loop_wait(double t) {
 		t = 0.0;
 	}
 	int ms = t * 1000;
-	printf("epoll(%lf, %d)\n", t, ms);
 
 	/* add fd to epoll set the first time around */
 	if (!added) {
 		ep[0].events = EPOLLIN | EPOLLERR | EPOLLHUP | EPOLLET;
 		ep[0].data.ptr = nullptr;
 		if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, wl_display_get_fd(global_display), &ep[0]) == -1) {
-			perror("epoll_ctl: add");
+			perror("conky: epoll_ctl: add");
 			return false;
 		}
 		added = true;
@@ -492,6 +496,13 @@ bool display_output_wayland::main_loop_wait(double t) {
 
     /* wait for Wayland event or timeout */
 	int ep_count = epoll_wait(epoll_fd, ep, ARRAY_LENGTH(ep), ms);
+	if (ep_count > 0) {
+		if (ep[0].events & (EPOLLERR | EPOLLHUP)) {
+			NORM_ERR("output closed");
+			exit(1);
+			return false;
+		}
+	}
 
 	wl_display_read_events(global_display);
 
