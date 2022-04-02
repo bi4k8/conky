@@ -1837,7 +1837,8 @@ static void reload_config() {
   clean_up(nullptr, nullptr);
   state = std::make_unique<lua::state>();
   conky::export_symbols(*state);
-  sleep(1); /* slight pause */
+  //sleep(1); /* slight pause */
+  next_update_time = get_time();
   initialisation(argc_copy, argv_copy);
 }
 
