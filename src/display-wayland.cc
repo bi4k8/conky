@@ -47,7 +47,6 @@
 
 #include <iostream>
 #include <sstream>
-#include <unordered_map>
 
 #include "conky.h"
 #include "display-wayland.hh"
