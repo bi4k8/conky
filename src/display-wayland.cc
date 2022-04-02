@@ -701,21 +701,22 @@ static void adjust_coords(int& x, int& y) {
   struct window *window = global_window;
   x -= text_start_x;
   y -= text_start_y;
-  /*int border = get_border_total();
+  int border = get_border_total();
   x += border;
-  y += border;*/
+  y += border;
 }
 
 void display_output_wayland::draw_string_at(int x, int y, const char *s, int w) {
   struct window *window = global_window;
-  //y += pango_fonts[selected_font].metrics.ascent;// + pango_fonts[selected_font].metrics.descent;
+  y -= pango_fonts[selected_font].metrics.ascent;
   adjust_coords(x, y);
   pango_layout_set_text(window->layout, s, strlen(s));
   cairo_save(window->cr);
   uint8_t r = current_color >> 24;
   uint8_t g = current_color >> 16;
   uint8_t b = current_color >> 8;
-  cairo_set_source_rgba(window->cr, r, g, b, pango_fonts[selected_font].font_alpha / 65535.);
+  unsigned int a = pango_fonts[selected_font].font_alpha;
+  cairo_set_source_rgba(global_window->cr, r / 255.0, g / 255.0, b / 255.0, a / 65535.);
   cairo_move_to(window->cr, x, y);
   pango_cairo_show_layout(window->cr, window->layout);
   cairo_restore(window->cr);
@@ -850,25 +851,32 @@ void display_output_wayland::free_fonts(bool utf8) {
   }
   pango_fonts.clear();
 }
+
 void display_output_wayland::load_fonts(bool utf8) {
+  free_fonts(utf8);
   pango_fonts.resize(fonts.size());
   for (unsigned int i = 0; i < fonts.size(); i++) {
     auto &font = fonts[i];
     auto &pango_font_entry = pango_fonts[i];
     FcPattern* fc_pattern = FcNameParse(reinterpret_cast<const unsigned char*>(font.name.c_str()));
     pango_font_entry.desc = pango_fc_font_description_from_pattern(fc_pattern, true);
+
+    // Handle pixel size ourselves because pango_fc_font_description_from_pattern does not
+	double pixel_size = -1;
+    if (FcPatternGetDouble (fc_pattern, FC_PIXEL_SIZE, 0, &pixel_size) == FcResultMatch) {
+		pango_font_description_set_absolute_size(pango_font_entry.desc, pixel_size * PANGO_SCALE);
+	}
     FcPatternDestroy(fc_pattern);
+
     PangoFont* pango_font = pango_context_load_font(global_window->pango_context, pango_font_entry.desc);
     PangoFontMetrics* font_metrics = pango_font_get_metrics(pango_font, nullptr);
-    auto ascent = pango_font_metrics_get_ascent(font_metrics) / 1024;
-    pango_font_entry.metrics.ascent = ascent;
-    auto descent = pango_font_metrics_get_descent(font_metrics) / 1024;
-    pango_font_entry.metrics.descent = descent;
-    //printf("asc %d desc %d height: %d\n", ascent, descent, pango_font_metrics_get_height(font_metrics));
-    //printf("%s: asc %d desc %d\n", font.name.c_str(), ascent, descent);
-    //printf("size=%d\n", pango_font_description_get_size(pango_font_entry.desc));
+    auto ascent = pango_font_metrics_get_ascent(font_metrics) / PANGO_SCALE;
+    auto descent = pango_font_metrics_get_descent(font_metrics) / PANGO_SCALE;
     pango_font_metrics_unref(font_metrics);
     g_object_unref(pango_font);
+
+    pango_font_entry.metrics.ascent = ascent;
+    pango_font_entry.metrics.descent = descent;
   }
 }
 
