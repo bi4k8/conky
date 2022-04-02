@@ -1127,7 +1127,6 @@ window_destroy(struct window *window) {
 
 void
 window_resize(struct window *window, int width, int height) {
-    printf("resize(%d x %d)\n", width, height);
 	window_free_buffer(window);
 	window->rectangle.width = width;
 	window->rectangle.height = height;
