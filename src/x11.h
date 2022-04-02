@@ -148,6 +148,7 @@ class use_xpmdb_setting : public conky::simple_config_setting<bool> {
   use_xpmdb_setting() : Base("double_buffer", false, false) {}
 };
 #endif
+} /* namespace priv */
 
 extern priv::out_to_x_setting out_to_x;
 
