@@ -524,9 +524,6 @@ bool display_output_wayland::main_loop_wait(double t) {
 	if (ep_count == 0) { update_text(); }
 
   if (need_to_update != 0) {
-#ifdef OWN_WINDOW
-    int wx = window.x, wy = window.y;
-#endif
 
     need_to_update = 0;
     selected_font = 0;
