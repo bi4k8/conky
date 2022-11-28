@@ -1158,6 +1158,6 @@ window_get_width_height(struct window *window, int *w, int *h) {
 	*h = window->rectangle.height;
 }
 
-}  // namespace conky
-
 #endif /* BUILD_WAYLAND */
+
+}  // namespace conky
