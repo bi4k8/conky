@@ -669,10 +669,8 @@ void display_output_wayland::cleanup() {
 void display_output_wayland::set_foreground_color(long c) {
 #ifdef BUILD_ARGB
     current_color = c | (own_window_argb_value.get(*state) << 24);
-#endif /* BUILD_ARGB */
+#else
     current_color = c;
-#ifdef BUILD_ARGB
-  }
 #endif /* BUILD_ARGB */
   uint8_t r = current_color >> 24;
   uint8_t g = current_color >> 16;
@@ -805,6 +803,13 @@ void display_output_wayland::end_draw_stuff() {
 void display_output_wayland::clear_text(int exposures) {
 	struct window *window = global_window;
 	cairo_save (window->cr);
+	#ifdef OWN_WINDOW
+	color = (background_colour.get(*state)
+	#ifdef BUILD_ARGB
+	color |= (own_window_argb_value.get(*state) << 24);
+
+	#endif
+	#endif
 	cairo_set_source_rgba (window->cr, 0, 0, 0, 0);
 	cairo_set_operator (window->cr, CAIRO_OPERATOR_SOURCE);
 	cairo_paint (window->cr);
