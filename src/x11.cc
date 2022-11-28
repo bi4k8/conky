@@ -68,7 +68,7 @@ struct conky_x11_window window;
 static void update_workarea();
 static Window find_desktop_window(Window *p_root, Window *p_desktop);
 static Window find_subwindow(Window win, int w, int h);
-static void init_X11();
+void init_X11();
 static void deinit_X11();
 
 /********************* <SETTINGS> ************************/
@@ -232,7 +232,7 @@ static int __attribute__((noreturn)) x11_ioerror_handler(Display *d) {
 }
 
 /* X11 initializer */
-static void init_X11() {
+void init_X11() {
   DBGP("enter init_X11()");
   if (display == nullptr) {
     const std::string &dispstr = display_name.get(*state);
