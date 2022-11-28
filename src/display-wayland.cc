@@ -199,7 +199,7 @@ struct pango_font {
 static std::vector<pango_font> pango_fonts; /* indexed by selected_font */
 
 namespace {
-class xftalpha_setting : public conky::simple_config_setting<float> {
+class textalpha_setting : public conky::simple_config_setting<float> {
   using Base = conky::simple_config_setting<float>;
 
  protected:
@@ -218,10 +218,10 @@ class xftalpha_setting : public conky::simple_config_setting<float> {
   }
 
  public:
-  xftalpha_setting() : Base("xftalpha", 1.0, false) {}
+  textalpha_setting() : Base("textalpha", 1.0, false) {}
 };
 
-xftalpha_setting xftalpha;
+textalpha_setting textalpha;
 }  // namespace
 
 static void wayland_create_window();
