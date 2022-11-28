@@ -154,6 +154,7 @@ extern conky::simple_config_setting<uint16_t, window_hints_traits>
     own_window_hints;
 
 #ifdef BUILD_ARGB
+extern priv::colour_setting background_colour;
 extern conky::simple_config_setting<bool> use_argb_visual;
 
 /* range of 0-255 for alpha */
