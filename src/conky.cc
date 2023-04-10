@@ -1321,11 +1321,13 @@ int draw_each_line_inner(char *s, int special_index, int last_special_applied) {
               for (i = w - 2; i > -1; i--) {
                 if (current->colours_set) {
                   if (current->tempgrad != 0) {
-                    set_foreground_color(tmpcolour[static_cast<int>(
-                        static_cast<float>(w - 2) -
-                        current->graph[j] * (w - 2) /
-                            std::max(static_cast<float>(current->scale),
-                                     1.0F))]);
+                    double meas_limit = std::max(current->scale, 1.0);
+                    double meas_norm = current->graph[j] /
+                      static_cast<float>(meas_limit);
+                    colour_idx = w - 2 - static_cast<int>(meas_norm * (w - 2));
+                    assert(colour_idx >= 0);
+                    assert(colour_idx < w);
+                    set_foreground_color(tmpcolour[colour_idx]);
                   } else {
                     set_foreground_color(tmpcolour[colour_idx++]);
                   }
